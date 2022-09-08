@@ -2,12 +2,24 @@ from unicodedata import category
 from django.db import models
 from datetimeutc.fields import DateTimeUTCField
 from django.contrib.auth.models import User
+import datetime
 
 # Create your models here.
 class Product(models.Model):
-    _id = models.AutoField(primary_key=True, editable=False)
+    def increment_product_id_number():
+        previous_product = Product.objects.all().order_by('_id').last()
+        if not previous_product or "PRO-" not in previous_product._id or datetime.datetime.now().strftime('%Y%m%d') != previous_product._id[4:12]:
+            return 'PRO-' + str(datetime.datetime.now().strftime('%Y%m%d-')) + '0000'
+
+        previous_product_id_count =  previous_product._id[13:17]
+        new_product_id_count = int(previous_product_id_count) + 1
+        new_product_id = 'PRO-' + str(datetime.datetime.now().strftime('%Y%m%d-')) + str(new_product_id_count).zfill(4)
+
+        return new_product_id
+
+    _id = models.CharField(max_length=17, unique=True, default=increment_product_id_number, editable=False, primary_key=True)
     name = models.CharField(max_length=200)
-    image = models.ImageField(blank=True, null=True)
+    image = models.ImageField(blank=True, null=True, default="/null.png")
     brand = models.CharField(max_length=200, blank=True, null=True)
     category = models.CharField(max_length=200, blank=True, null=True)
     description = models.TextField(max_length=5000)
@@ -15,7 +27,7 @@ class Product(models.Model):
     countInStock = models.IntegerField(default=0)
     createdAt = DateTimeUTCField(auto_now_add=True)
     updateAt = DateTimeUTCField(auto_now=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    createdBy = models.ForeignKey(User, on_delete=models.PROTECT, limit_choices_to={'is_staff': True})
 
     def __str__(self):
         return str(self.name) 
@@ -30,6 +42,7 @@ class Product(models.Model):
             return sum(reviews.rating)/len(reviews)
         else:
             return 0
+
 
 class Review(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
