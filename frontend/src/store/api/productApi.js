@@ -8,9 +8,9 @@ async function fetchProduct(id) {
     return await axios.get(`/api/products-full-info/${id}/`)
 }
 
-const Api = {
+const productApi = {
     fetchProducts: fetchProducts,
     fetchProduct: fetchProduct,
 }
 
-export default Api
+export default productApi

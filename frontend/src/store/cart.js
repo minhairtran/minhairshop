@@ -20,8 +20,6 @@ const cartSlice = createSlice({
         return addedProduct.product._id === data._id;
       });
 
-      console.log(addedProduct)
-
       if (addedProduct === undefined) {
         state.cart.push({ product: data, quantity });
       } else {

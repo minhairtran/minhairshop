@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied, APIException
 from django_filters import rest_framework as filters
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import authentication_classes
@@ -41,7 +41,7 @@ class ProductFullInfoViewSet(viewsets.ModelViewSet):
     # throttle_classes = [AnonRateThrottle]
     pagination_class = StandardResultsSetPagination
     renderer_classes = [JSONRenderer]
-    # parser_classes = [JSONParser]
+    parser_classes = [JSONParser]
 
     # @action(detail=True, methods=['post'])
     @authentication_classes([SessionAuthentication, BasicAuthentication])
@@ -49,11 +49,11 @@ class ProductFullInfoViewSet(viewsets.ModelViewSet):
         try:
             user = request.user
             user = get_object_or_404(User.objects.all(), username=user.username)
-            data = request.data.dict()
+            data = request.data
             data['createdBy'] = user.id
             product_serializer = self.get_serializer(data=data)
             product_serializer.is_valid(raise_exception=True)
             product_serializer.save()
-            return Response(product_serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"data": product_serializer.data}, status=status.HTTP_201_CREATED)
         except ValidationError as error:
-            return Response(error.__dict__, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": error.__dict__}, status=status.HTTP_400_BAD_REQUEST)

@@ -14,6 +14,7 @@ from django.core.exceptions import (
 from base.pagination import StandardResultsSetPagination
 from rest_framework.renderers import JSONRenderer
 from django_filters import rest_framework as filters
+from rest_framework.parsers import JSONParser
 
 class UserFilter(filters.FilterSet):
 
@@ -29,6 +30,7 @@ class UserFilter(filters.FilterSet):
 class UserView(views.APIView):
     permission_classes = [AllowAny]
     renderer_classes = [JSONRenderer]
+    parser_classes = [JSONParser]
 
     def get(self, request, *args, **kwargs):
         user = request.user
@@ -38,8 +40,8 @@ class UserView(views.APIView):
     # Register
     def post(self, request, *args, **kwargs):
         try:
-            user = request.data.dict()
-            user['email'] = user['username']
+            user = request.data
+            user['email'] = user["username"]
             serializer = UserSerializerWithToken(data=user)
             if(serializer.is_valid(raise_exception=True)):
                 serializer.save()
@@ -81,7 +83,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         for k, v in serializer.items():
             data[k] = v
-
         return data
 
 class MyTokenObtainPairView(TokenObtainPairView):
