@@ -7,11 +7,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
 
-const LoginScreen = () => {
+const RegisterScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordType, setPasswordType] = useState("password");
+  const [passwordError, setPasswordError] = useState(false);
   const dispatch = useDispatch();
   let location = useLocation();
   const { user, error, loading } = useSelector((state) => state.user);
@@ -19,7 +21,13 @@ const LoginScreen = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    dispatch(userActions.logInRequest({ username: email, password }));
+    if (confirmPassword !== password) {
+      setPasswordError(true);
+    } else {
+      setPasswordError(false);
+
+      dispatch(userActions.registerRequest({ username: email, password }));
+    }
   };
 
   const redirect = location.search ? location.search.split("=")[1] : "/";
@@ -46,8 +54,10 @@ const LoginScreen = () => {
 
   return (
     <FormContainer>
-      <h1>Login</h1>
+      <h1>Register</h1>
       {error && <Message variant="danger">{error}</Message>}
+      {passwordError && <Message variant="danger">Check Password</Message>}
+
       {loading && <Loader />}
       <Form onSubmit={submitHandler}>
         <Form.Group controlId="email" className="mb-3">
@@ -76,15 +86,32 @@ const LoginScreen = () => {
             </div>
           </div>
         </Form.Group>
+        <Form.Group controlId="confirm-password" className="mb-3">
+          <Form.Label>Confirm password</Form.Label>
+          <div className="password">
+            <Form.Control
+              type={passwordType}
+              placeholder="Re-eter password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <div className="ms-2">
+              <i
+                onClick={showPassHandler}
+                className={showPass ? "fas fa-eye" : "fas fa-eye-slash"}
+              ></i>
+            </div>
+          </div>
+        </Form.Group>
         <Button type="submit" variant="primary" className="mb-3">
-          Login
+          Register
         </Button>
       </Form>
       <Row className="py-3">
         <Col>
-          New Customer?
-          <Link to={redirect ? `/register?redirect=${redirect}` : "/register"}>
-            Register
+          Already having an account?
+          <Link to={redirect ? `/login?redirect=${redirect}` : "/login"}>
+            Login
           </Link>
         </Col>
       </Row>
@@ -92,4 +119,4 @@ const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
+export default RegisterScreen;

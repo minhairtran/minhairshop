@@ -9,7 +9,7 @@ from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.password_validation import password_validators_help_texts, validate_password
 from django.core.exceptions import (
-    ValidationError,
+    ValidationError, BadRequest
 )
 from base.pagination import StandardResultsSetPagination
 from rest_framework.renderers import JSONRenderer
@@ -47,7 +47,12 @@ class UserView(views.APIView):
                 serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValidationError as error:
-            return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+        except BadRequest as error:
+            return Response({"error": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"error": "Something wrong"}, status=status.HTTP_400_BAD_REQUEST)
+
        
 
     def put(self, request, *args, **kwargs):

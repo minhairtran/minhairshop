@@ -1,7 +1,7 @@
 import axios from "axios";
-import {BASE_URL} from "./constants";
+import { BASE_URL } from "./constants";
 
-async function login({username, password}) {
+async function login({ username, password }) {
   return await axios({
     method: "post",
     url: BASE_URL + `/api/user/login/`,
@@ -12,8 +12,22 @@ async function login({username, password}) {
   });
 }
 
+async function register({ username, password }) {
+  const data = JSON.stringify({
+    "username": username,
+    "password": password,
+  });
+  return await axios({
+    method: "post",
+    url: BASE_URL + `/api/user/`,
+    headers: { "Content-Type": "application/json" },
+    data: data,
+  });
+}
+
 const userApi = {
   login: login,
+  register: register,
 };
 
 export default userApi;
