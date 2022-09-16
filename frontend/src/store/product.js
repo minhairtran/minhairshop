@@ -16,7 +16,7 @@ const productSlice = createSlice({
       state.error = null;
     },
     listProductsSuccess(state, action) {
-      state.products = action.payload.results
+      state.products = action.payload
       state.loading = false;
       state.error = null;
     },
