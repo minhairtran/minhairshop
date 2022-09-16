@@ -6,7 +6,6 @@ import { useDispatch } from "react-redux";
 import { productActions } from "../store/product";
 import { cartActions } from "../store/cart";
 import { useSelector } from "react-redux";
-
 import Loader from "../components/Loader";
 import Message from "../components/Message";
 
@@ -16,6 +15,8 @@ const ProductScreen = () => {
   const dispatch = useDispatch();
   const { product, error, loading } = useSelector((state) => state.product);
 
+  const access_token = localStorage.getItem("access_token");
+
   useEffect(() => {
     dispatch(productActions.listProductRequest(id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -23,7 +24,7 @@ const ProductScreen = () => {
 
   const addToCartHandler = () => {
     dispatch(cartActions.addCartRequest({ id, quantity }));
-  }
+  };
 
   return (
     <div>
@@ -98,16 +99,25 @@ const ProductScreen = () => {
                   </Row>
                 </ListGroup.Item>
               )}
-              <ListGroup.Item>
-                <Button
-                  className="btn-block"
-                  disabled={product.countInStock <= 0}
-                  type="button"
-                  onClick={addToCartHandler}
-                >
-                  Add to cart
-                </Button>
-              </ListGroup.Item>
+              {access_token && (
+                <ListGroup.Item>
+                  <Button
+                    className="btn-block"
+                    disabled={product.countInStock <= 0}
+                    type="button"
+                    onClick={addToCartHandler}
+                  >
+                    Add to cart
+                  </Button>
+                </ListGroup.Item>
+              )}
+              {!access_token && (
+                <ListGroup.Item>
+                  <Link to="/login">
+                    <Button className="btn-block">Go to Login</Button>
+                  </Link>
+                </ListGroup.Item>
+              )}
             </ListGroup>
           </Col>
         </Row>

@@ -4,6 +4,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
 import { userLoginActions } from "../store/userLogin";
 import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 function Header() {
   const { userLogin, loading } = useSelector((state) => state.userLogin);
@@ -14,12 +15,14 @@ function Header() {
     dispatch(userLoginActions.logOutRequest());
   };
 
-  // useEffect(() => {
-  //   if (!userLogin) {
-  //     navigate("/login/");
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [userLogin]);
+  const access_token = localStorage.getItem("access_token");
+
+  useEffect(() => {
+    if (!access_token) {
+      navigate("/login/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access_token ]);
 
   return (
     <header>
@@ -30,14 +33,17 @@ function Header() {
           </LinkContainer>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            {userLogin && (
+            {access_token && (
               <Nav className="mr-auto">
                 <LinkContainer to="/cart/">
                   <Nav.Link>
                     <i className="fas fa-shopping-cart"></i>Cart
                   </Nav.Link>
                 </LinkContainer>
-                <NavDropdown title={userLogin.username} id="username">
+                <NavDropdown
+                  title={userLogin && userLogin.username}
+                  id="username"
+                >
                   <LinkContainer to="user-profile">
                     <NavDropdown.Item>Profile</NavDropdown.Item>
                   </LinkContainer>
@@ -47,7 +53,7 @@ function Header() {
                 </NavDropdown>
               </Nav>
             )}
-            {!userLogin && (
+            {!access_token && (
               <Nav className="mr-auto">
                 <LinkContainer to="/login/">
                   <Nav.Link>
