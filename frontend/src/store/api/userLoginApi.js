@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL } from "./constants";
+import { BASE_URL } from "../../constants/constants";
 
 async function login({ username, password }) {
   return await axios({
@@ -25,9 +25,9 @@ async function register({ username, password }) {
   });
 }
 
-const userApi = {
+const userLoginApi = {
   login: login,
   register: register,
 };
 
-export default userApi;
+export default userLoginApi;

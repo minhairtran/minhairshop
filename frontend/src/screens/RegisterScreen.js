@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import FormContainer from "../components/FormContainer";
 import { useDispatch, useSelector } from "react-redux";
-import { userActions } from "../store/user";
+import { userLoginActions } from "../store/userLogin";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
@@ -16,7 +16,7 @@ const RegisterScreen = () => {
   const [passwordError, setPasswordError] = useState(false);
   const dispatch = useDispatch();
   let location = useLocation();
-  const { user, error, loading } = useSelector((state) => state.user);
+  const { userLogin, error, loading } = useSelector((state) => state.userLogin);
   let navigate = useNavigate();
 
   const submitHandler = (e) => {
@@ -26,18 +26,18 @@ const RegisterScreen = () => {
     } else {
       setPasswordError(false);
 
-      dispatch(userActions.registerRequest({ username: email, password }));
+      dispatch(userLoginActions.registerRequest({ username: email, password }));
     }
   };
 
   const redirect = location.search ? location.search.split("=")[1] : "/";
 
   useEffect(() => {
-    if (user) {
+    if (userLogin) {
       navigate(redirect);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, redirect]);
+  }, [userLogin, redirect]);
 
   const showPassHandler = (e) => {
     e.preventDefault();

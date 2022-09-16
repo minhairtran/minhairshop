@@ -2,24 +2,24 @@ import React, { useEffect } from "react";
 import { Navbar, Container, Nav, NavDropdown } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
-import { userActions } from "../store/user";
+import { userLoginActions } from "../store/userLogin";
 import { useNavigate } from "react-router-dom";
 
 function Header() {
-  const { user } = useSelector((state) => state.user);
+  const { userLogin, loading } = useSelector((state) => state.userLogin);
   const dispatch = useDispatch();
   let navigate = useNavigate();
 
   const logoutHandler = () => {
-    dispatch(userActions.logOutRequest());
+    dispatch(userLoginActions.logOutRequest());
   };
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login/");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  // useEffect(() => {
+  //   if (!userLogin) {
+  //     navigate("/login/");
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [userLogin]);
 
   return (
     <header>
@@ -30,15 +30,15 @@ function Header() {
           </LinkContainer>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            {user && (
+            {userLogin && (
               <Nav className="mr-auto">
                 <LinkContainer to="/cart/">
                   <Nav.Link>
                     <i className="fas fa-shopping-cart"></i>Cart
                   </Nav.Link>
                 </LinkContainer>
-                <NavDropdown title={user.username} id="username">
-                  <LinkContainer to="profile">
+                <NavDropdown title={userLogin.username} id="username">
+                  <LinkContainer to="user-profile">
                     <NavDropdown.Item>Profile</NavDropdown.Item>
                   </LinkContainer>
                   <NavDropdown.Item onClick={logoutHandler}>
@@ -47,7 +47,7 @@ function Header() {
                 </NavDropdown>
               </Nav>
             )}
-            {!user && (
+            {!userLogin && (
               <Nav className="mr-auto">
                 <LinkContainer to="/login/">
                   <Nav.Link>

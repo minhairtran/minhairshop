@@ -1,12 +1,11 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status, views
-from base.serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer
+from base.serializers import UserSerializer, UserSerializerWithToken, ChangePasswordSerializer, UserLoginSerializer, UserNameSerializer
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAdminUser, AllowAny, IsAuthenticated
 from rest_framework import generics
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.password_validation import password_validators_help_texts, validate_password
 from django.core.exceptions import (
     ValidationError, BadRequest
@@ -15,6 +14,8 @@ from base.pagination import StandardResultsSetPagination
 from rest_framework.renderers import JSONRenderer
 from django_filters import rest_framework as filters
 from rest_framework.parsers import JSONParser
+from rest_framework.decorators import permission_classes as permission_classes_decorators, renderer_classes as renderer_classes_decorators, parser_classes as parser_classes_decorators, api_view
+
 
 class UserFilter(filters.FilterSet):
 
@@ -26,16 +27,25 @@ class UserFilter(filters.FilterSet):
         }
         ordering_fields = ['-id']
 
+@api_view(["GET"])
+@permission_classes_decorators([IsAuthenticated])
+@renderer_classes_decorators([JSONRenderer])
+@parser_classes_decorators([JSONParser])
+def get_user_name(request, *args, **kwargs):
+    user = request.user
+    serializer = UserNameSerializer(user, many=False)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 # Create your views here.
 class UserView(views.APIView):
     permission_classes = [AllowAny]
     renderer_classes = [JSONRenderer]
     parser_classes = [JSONParser]
-
+    
     def get(self, request, *args, **kwargs):
         user = request.user
         serializer = UserSerializerWithToken(user, many=False)
-        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # Register
     def post(self, request, *args, **kwargs):
@@ -56,13 +66,19 @@ class UserView(views.APIView):
        
 
     def put(self, request, *args, **kwargs):
-        user = request.user
-        updated_user = get_object_or_404(User.objects.all(), username=user.username)
-        updated_info = request.data.dict()
-        serializer = UserSerializerWithToken(data=updated_info, instance=updated_user, partial=True)
-        if(serializer.is_valid(raise_exception=True)):
-            serializer.save()
-        return Response({"data": serializer.data}, status=status.HTTP_202_ACCEPTED)
+        try:
+            updated_user = request.user
+            updated_info = request.data
+            serializer = UserSerializerWithToken(data=updated_info, instance=updated_user, partial=True)
+            if(serializer.is_valid(raise_exception=True)):
+                serializer.save()
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+        except ValidationError as error:
+            return Response({"error": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+        except BadRequest as error:
+            return Response({"error": error.messages}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response({"error": "Something wrong"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Create your views here.
@@ -84,7 +100,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
 
-        serializer = UserSerializerWithToken(self.user).data
+        serializer = UserLoginSerializer(self.user).data
 
         for k, v in serializer.items():
             data[k] = v
@@ -99,7 +115,7 @@ class PasswordView(generics.UpdateAPIView):
         """
         serializer_class = ChangePasswordSerializer
         model = User
-        permission_classes = (AllowAny,)
+        permission_classes = (IsAuthenticated,)
 
         def update(self, request, *args, **kwargs):
             user = request.user
@@ -108,10 +124,10 @@ class PasswordView(generics.UpdateAPIView):
             if serializer.is_valid():
                 # Check old password
                 if not user.check_password(serializer.data.get("old_password")):
-                    return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"Wrong old password."}, status=status.HTTP_400_BAD_REQUEST)
                 # set_password also hashes the password that the user will get
                 try:
-                    validate_password(serializer.data.get("new_password"), user=User(email=user['email'], username=user['username']))
+                    validate_password(serializer.data.get("new_password"), user=user)
                 except ValidationError as error:
                     return Response(error, status=status.HTTP_400_BAD_REQUEST)
                 user.set_password(serializer.data.get("new_password"))
@@ -130,4 +146,4 @@ class PasswordView(generics.UpdateAPIView):
 class PasswordInfoView(views.APIView):
     permission_classes = [AllowAny]
     def get(self, request, *args, **kwargs):
-            return Response({"data": password_validators_help_texts()}, status=status.HTTP_200_OK)
+            return Response(password_validators_help_texts(), status=status.HTTP_200_OK)

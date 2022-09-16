@@ -1,15 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialUserState = {
+const initialUserLoginState = {
   loading: false,
   error: null,
-  user: null,
+  userLogin: null,
   status: null,
 };
 
-const userSlice = createSlice({
+const userLoginSlice = createSlice({
   name: "user",
-  initialState: initialUserState,
+  initialState: initialUserLoginState,
   reducers: {
     logInRequest(state, action) {
       state.loading = true;
@@ -17,26 +17,27 @@ const userSlice = createSlice({
     },
     logInSuccess(state, action) {
       const data = action.payload.data;
-      state.user = data;
+      state.userLogin = data;
       // state.status = status;
       state.loading = false;
       state.error = null;
-      localStorage.setItem('userInfo', JSON.stringify(data.access))
+      localStorage.setItem('access_token', JSON.stringify(data.access_token))
     },
     logInFail(state, action) {
       state.loading = false;
       state.error = action.payload;
+      state.userLogin = null;
     },
     logOutRequest(state, action) {
       state.loading = true;
       state.error = null;
     },
     logOutSuccess(state, action) {
-      state.user = null;
+      state.userLogin = null;
       // state.status = status;
       state.loading = false;
       state.error = null;
-      localStorage.removeItem('userInfo')
+      localStorage.removeItem('access_token')
     },
     logOutFail(state, action) {
       state.loading = false;
@@ -48,11 +49,11 @@ const userSlice = createSlice({
     },
     registerSuccess(state, action) {
       const data = action.payload.data;
-      state.user = data;
+      state.userLogin = data;
       // state.status = status;
       state.loading = false;
       state.error = null;
-      // localStorage.setItem('userInfo', JSON.stringify(data.access))
+      // localStorage.setItem('access_token', JSON.stringify(data.access_token))
     },
     registerFail(state, action) {
       state.loading = false;
@@ -61,6 +62,6 @@ const userSlice = createSlice({
   },
 });
 
-export const userActions = userSlice.actions;
+export const userLoginActions = userLoginSlice.actions;
 
-export default userSlice.reducer;
+export default userLoginSlice.reducer;

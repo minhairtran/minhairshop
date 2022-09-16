@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Product, Review, Order, OrderItem, ShippingAddress
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.password_validation import validate_password
 
 class UserSerializer(serializers.ModelSerializer):
@@ -36,26 +36,56 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class UserSerializerWithToken(UserSerializer):
     token = serializers.SerializerMethodField(read_only=True)
-    isAdmin = serializers.SerializerMethodField(read_only=True)
-    isActive = serializers.SerializerMethodField(read_only=True)
+    is_admin = serializers.SerializerMethodField(read_only=True)
+    is_active = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id','first_name', 'last_name', 'isAdmin', 'last_login', 'email', 'isActive', 'token', 'username', 'password', 'date_joined']
+        fields = ['id','first_name', 'last_name', 'is_admin', 'last_login', 'email', 'is_active', 'token', 'username', 'password', 'date_joined']
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
 
     
     def get_last_login(self, obj):
         return obj.last_login
         
-    def get_isAdmin(self, obj):
+    def get_is_admin(self, obj):
         return obj.is_staff
 
-    def get_isActive(self, obj):
+    def get_is_active(self, obj):
         return obj.is_active
 
     def get_token(self, obj):
-        token = RefreshToken.for_user(obj)
+        token = AccessToken.for_user(obj)
+        return str(token)
+
+class UserNameSerializer(serializers.Serializer):
+    username = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['username']
+    
+    def get_username(self, obj):
+        return obj.username
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    access_token = serializers.SerializerMethodField(read_only=True)
+    is_admin = serializers.SerializerMethodField(read_only=True)
+    is_active = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'is_admin', 'is_active', 'access_token', 'username']
+        extra_kwargs = {'password': {'write_only': True, 'required': True}}
+        
+    def get_is_admin(self, obj):
+        return obj.is_staff
+
+    def get_is_active(self, obj):
+        return obj.is_active
+
+    def get_access_token(self, obj):
+        token = AccessToken.for_user(obj)
         return str(token)
 
 class ProductFullInfoSerializer(serializers.ModelSerializer):
